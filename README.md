@@ -6,17 +6,11 @@ Codex interview starter configuration for timeboxed fullstack assessment tasks.
 - Project instructions: `AGENTS.md`
 - Project Codex config: `.codex/config.toml`
 - Optional MCP recommendations: `.codex/MCP-OPTIONAL.md`
-- Custom skill: `.agents/skills/fullstack-assessment-lead`
+- Custom skill: `.agents/skills/fullstack-assignment-factory`
 - Env template: `.env.example`
 
-## Project-local curated skills in `.agents/skills`
-- `playwright`
-- `gh-fix-ci`
-- `gh-address-comments`
-- `security-best-practices`
-- `security-threat-model`
-- `pdf`
-- `openai-docs`
+## Project-local skills in `.agents/skills`
+- `fullstack-assignment-factory`
 
 ## Usage
 1. Populate your local env values from `.env.example`.
@@ -26,4 +20,4 @@ Codex interview starter configuration for timeboxed fullstack assessment tasks.
 3. Ensure this project is trusted in Codex so `.codex/config.toml` is applied.
 4. Restart Codex so project-local skills and config are re-indexed.
 5. Open this repo as the working directory so `.agents/skills` is in scan scope.
-6. Invoke skills explicitly as needed, for example `$fullstack-assessment-lead` or `$playwright`.
+6. Invoke skills explicitly as needed, for example `$fullstack-assignment-factory`.
