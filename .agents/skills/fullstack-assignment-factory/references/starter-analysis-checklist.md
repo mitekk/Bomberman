@@ -1,5 +1,9 @@
 # Starter Analysis Checklist
 
+Use this data in:
+- `openspec/changes/<change-id>/proposal.md` (analysis narrative)
+- `openspec/changes/<change-id>/specs/<domain>/spec.md` (normative requirements)
+
 ## Backend
 - Existing route map and request/response shapes.
 - Validation approach and error envelope.
@@ -19,6 +23,11 @@
 | Endpoint/Surface | Current Behavior | Proposed Change | Break Risk | Mitigation |
 | --- | --- | --- | --- | --- |
 |  |  |  | Low/Med/High |  |
+
+## Spec Delta Mapping
+| Requirement ID | Delta Spec Path | Change Type (Add/Modify/Remove) | Backward Compatible | Notes |
+| --- | --- | --- | --- | --- |
+|  | openspec/changes/<change-id>/specs/<domain>/spec.md |  | Yes/No |  |
 
 ## Evolution Rules
 - Preserve behavior by default.

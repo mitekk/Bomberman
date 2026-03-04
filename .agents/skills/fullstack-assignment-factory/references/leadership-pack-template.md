@@ -1,5 +1,7 @@
 # Leadership Pack Template
 
+Represent this as completion tasks in `openspec/changes/<change-id>/tasks.md`.
+
 ## Required Deliverables
 - README with setup, run, test, assumptions, and known limitations.
 - ADR set with selected and rejected architecture options.
@@ -24,3 +26,9 @@
 - Known gaps.
 - Residual risks.
 - Next recommended actions.
+
+## Task Checklist Snippet
+- [ ] README draft complete and validated against acceptance criteria.
+- [ ] ADR minimum set drafted and linked.
+- [ ] Risk register populated with mitigation and residual risk.
+- [ ] "If more time" roadmap prioritized and sequenced.

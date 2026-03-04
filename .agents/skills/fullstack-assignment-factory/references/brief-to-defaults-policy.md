@@ -1,5 +1,9 @@
 # Brief-to-Defaults Policy
 
+Record all decisions in `openspec/changes/<change-id>/proposal.md` with tags:
+- `brief-derived`
+- `fallback-applied`
+
 ## Priority Order
 1. Assignment brief and acceptance criteria.
 2. Explicit user overrides.
