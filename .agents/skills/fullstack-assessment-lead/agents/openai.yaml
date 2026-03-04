@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fullstack Assessment Lead"
+  short_description: "Execute interview fullstack tasks with rigor"
+  default_prompt: "Use $fullstack-assessment-lead to execute this fullstack assessment end-to-end with architecture tradeoffs, tests, and leadership artifacts."

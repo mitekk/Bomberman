@@ -1,0 +1,7 @@
+interface:
+  display_name: "Fullstack Assignment Factory"
+  short_description: "Turn briefs into API-first execution packets"
+  default_prompt: "Use $fullstack-assignment-factory to analyze this assignment brief and produce a decision-complete API-first scaffold plan before any implementation."
+
+policy:
+  allow_implicit_invocation: true
