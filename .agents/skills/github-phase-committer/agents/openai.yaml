@@ -1,0 +1,15 @@
+interface:
+  display_name: "GitHub Phase Committer"
+  short_description: "Commit and push phase-contained changes"
+  default_prompt: "Use $github-phase-committer to validate phase boundaries, create a phase-scoped commit, push integration and phase branches, and prepare the integration PR update payload."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "github"
+      description: "GitHub MCP server for integration PR create/update and phase summary comments."
+      transport: "streamable_http"
+      url: "https://api.githubcopilot.com/mcp/"
+
+policy:
+  allow_implicit_invocation: true
