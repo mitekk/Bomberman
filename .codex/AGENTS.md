@@ -66,6 +66,7 @@ Run all applicable gates, or report exactly why a gate could not run.
 
 ## Skill Routing
 - Use `fullstack-assignment-factory` for assignment/take-home orchestration requests that require brief intake, starter analysis, architecture tradeoffs, and scaffold planning.
+- Use `github-phase-committer` for phase-scoped commit/push workflows that must block cross-phase leakage and keep one integration PR updated.
 - Keep `fullstack-assessment-lead` available for implementation-heavy execution once planning is approved.
 - Enforce planning-first behavior for assignment orchestration and require explicit user confirmation before implementation.
 - Derive stack defaults from the assignment brief first; apply fallback defaults only when brief constraints are silent.

@@ -6,12 +6,15 @@ Codex interview starter configuration for timeboxed fullstack assessment tasks.
 - Project instructions: `.codex/AGENTS.md`
 - Project Codex config: `.codex/config.toml`
 - Optional MCP recommendations: `.codex/MCP-OPTIONAL.md`
-- Custom skill: `.agents/skills/fullstack-assignment-factory`
+- Custom skills:
+  - `.agents/skills/fullstack-assignment-factory`
+  - `.agents/skills/github-phase-committer`
 - Env template: `.env.example`
 - OpenSpec workspace: `openspec/`
 
 ## Project-local skills in `.agents/skills`
 - `fullstack-assignment-factory`
+- `github-phase-committer`
 
 ## Usage
 1. Populate your local env values from `.env.example`.
@@ -21,7 +24,7 @@ Codex interview starter configuration for timeboxed fullstack assessment tasks.
 3. Ensure this project is trusted in Codex so `.codex/config.toml` is applied.
 4. Restart Codex so project-local skills and config are re-indexed.
 5. Open this repo as the working directory so `.agents/skills` is in scan scope.
-6. Invoke skills explicitly as needed, for example `$fullstack-assignment-factory`.
+6. Invoke skills explicitly as needed, for example `$fullstack-assignment-factory` or `$github-phase-committer`.
 
 ## OpenSpec workflow
 
@@ -67,3 +70,11 @@ npx -y @fission-ai/openspec@latest archive "<change-id>" --yes
 npx -y @fission-ai/openspec@latest list
 npx -y @fission-ai/openspec@latest show "<change-id>"
 ```
+
+## Phase Commit Workflow
+
+For phase-scoped git delivery with leakage blocking and single integration PR updates:
+1. Ensure `openspec/changes/<change-id>/phase-boundaries.yaml` exists and matches tasks headings.
+2. Stage only files in the target phase scope.
+3. Run `$github-phase-committer` (dry-run first if needed).
+4. Use emitted PR payload with GitHub MCP to create/update the integration PR and add phase evidence comments.

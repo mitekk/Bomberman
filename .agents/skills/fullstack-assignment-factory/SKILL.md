@@ -20,6 +20,8 @@ Produce decision-complete OpenSpec artifacts for fullstack assignment tasks befo
 9. Every assignment must use a change ID in `YYYYMMDD-<kebab-scope>` format under `openspec/changes/`.
 10. Strict gate before implementation: `proposal.md`, `tasks.md`, and at least one spec delta must exist, and `npx -y @fission-ai/openspec@latest validate --strict` must pass.
 11. Archive only after implementation and verification gates are complete.
+12. Emit `openspec/changes/<change-id>/phase-boundaries.yaml` with explicit phase, path, and gate mappings.
+13. Keep `tasks.md` phase headings stable so they can be consumed by `$github-phase-committer`.
 
 ## Workflow
 0. **Bootstrap: OpenSpec Workspace**
@@ -52,6 +54,7 @@ Produce decision-complete OpenSpec artifacts for fullstack assignment tasks befo
 - Define OpenAPI-first contract steps.
 - Define backend extension steps, validation, logging, timeout/retry, DB, and Redis roles.
 - Define integration and compatibility checkpoints.
+- Define phase boundaries file at `openspec/changes/<change-id>/phase-boundaries.yaml`.
 - Write implementation sequence to `openspec/changes/<change-id>/tasks.md` as executable checkboxes.
 - Use [references/scaffold-instruction-template.md](references/scaffold-instruction-template.md).
 
@@ -59,6 +62,7 @@ Produce decision-complete OpenSpec artifacts for fullstack assignment tasks befo
 - Map UI screens and data boundaries to finalized API contracts.
 - Define TanStack Query/Router/Table usage only if aligned to brief or defaults.
 - Define unit and E2E scope.
+- Ensure stable headings exist for phase sections (for example `Phase Spec`, `Phase API`, `Phase UI`, `Phase Fixes`).
 - Write frontend sequence to `tasks.md` as checkbox tasks.
 
 6. **Phase 5: Verification Gates**
@@ -77,6 +81,7 @@ Produce decision-complete OpenSpec artifacts for fullstack assignment tasks befo
 - Run `npx -y @fission-ai/openspec@latest status --change <change-id>`.
 - Run `npx -y @fission-ai/openspec@latest validate --strict`.
 - Report current progress state from task checkboxes: `Not Started`, `In Progress`, `Done (Unarchived)`, `Archived`.
+- In execution mode, after each completed phase, invoke `$github-phase-committer` to enforce phase-scoped commit + push + integration PR update.
 - For completed implementation, archive with `npx -y @fission-ai/openspec@latest archive <change-id> --yes`.
 
 ## Input Contract
@@ -101,12 +106,14 @@ Default output mode (always):
 8. Container runtime contract in `tasks.md` and/or spec delta.
 9. CI and verification gate matrix in `tasks.md`.
 10. Leadership pack checklist and "if more time" roadmap in `tasks.md`.
+11. Phase boundary contract in `phase-boundaries.yaml`.
 
 Execution mode output (only after explicit user confirmation):
 1. Concrete file tree.
 2. Ordered edit plan.
 3. Verification command list.
 4. Task checkbox updates in `openspec/changes/<change-id>/tasks.md`.
+5. Phase commit handoff details (`phase`, `commit_type`, `gate_commands`, `file_allow`, branch names).
 
 ## OpenSpec Command Checklist
 - Initialize: `npx -y @fission-ai/openspec@latest init --tools codex .`
@@ -136,6 +143,7 @@ Use these scenario checks before finalizing responses:
 5. User-provided stack conflicts with defaults: prioritize brief/overrides over default profile.
 6. Brief omits infra: lock container contract, defer compute target decision to ADR.
 7. Missing OpenSpec artifacts: refuse implementation and return artifact checklist to complete gate.
+8. User requires phase-contained commits: ensure `phase-boundaries.yaml`, stable headings, and `$github-phase-committer` handoff are present.
 
 ## Final Response Checklist
 - Include assumptions and unresolved unknowns.
@@ -143,3 +151,4 @@ Use these scenario checks before finalizing responses:
 - Include tests/gates run or planned and any limitations.
 - Include residual risks and next-step roadmap.
 - Include change status and artifact path references under `openspec/`.
+- Include phase-boundary and phase-commit handoff references when relevant.
