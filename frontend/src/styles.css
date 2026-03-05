@@ -1,0 +1,164 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap');
+
+:root {
+  --bg: #0f172a;
+  --panel: #111827;
+  --fg: #f8fafc;
+  --accent: #f97316;
+  --danger: #ef4444;
+  --win: #22c55e;
+  --wall: #334155;
+  --block: #92400e;
+  --floor: #dbeafe;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Space Mono", monospace;
+  background:
+    radial-gradient(circle at 20% 20%, #1e293b 0%, transparent 35%),
+    radial-gradient(circle at 80% 30%, #0b3b2e 0%, transparent 40%),
+    linear-gradient(145deg, #020617, #111827 40%, #0f172a);
+  color: var(--fg);
+}
+
+h1,
+h2 {
+  font-family: "Press Start 2P", cursive;
+  font-size: clamp(1.2rem, 3vw, 2rem);
+}
+
+.screen {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.menu-screen,
+.outcome-screen,
+.profile-screen {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+}
+
+button,
+select,
+a {
+  font: inherit;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  padding: 0.6rem 0.8rem;
+}
+
+button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.grid-board {
+  display: grid;
+  gap: 2px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  width: min(100%, 780px);
+  margin-top: 0.8rem;
+}
+
+.tile {
+  aspect-ratio: 1 / 1;
+  position: relative;
+}
+
+.tile-wall {
+  background: var(--wall);
+}
+
+.tile-block {
+  background: var(--block);
+}
+
+.tile-floor {
+  background: var(--floor);
+}
+
+.entity {
+  position: absolute;
+  inset: 18%;
+  border-radius: 4px;
+}
+
+.entity.player {
+  background: #0ea5e9;
+}
+
+.entity.bot {
+  background: #ef4444;
+}
+
+.entity.bomb {
+  background: #111827;
+}
+
+.entity.explosion {
+  background: linear-gradient(45deg, #ef4444, #f97316, #facc15);
+  animation: pulse 350ms ease-in-out infinite;
+}
+
+.hud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.hud-item {
+  background: var(--panel);
+  border: 1px solid #334155;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+}
+
+.result-win {
+  color: var(--win);
+}
+
+.result-lose,
+.result-draw {
+  color: var(--danger);
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1.05);
+  }
+}
+
+@media (max-width: 640px) {
+  .screen {
+    padding: 0.75rem;
+  }
+
+  .hud {
+    gap: 0.3rem;
+  }
+
+  .hud-item {
+    font-size: 0.75rem;
+  }
+}
