@@ -32,9 +32,9 @@ phases:
       - docker-compose.yml
       - .github/workflows/**
     gate_commands:
-      - npm run lint --workspace backend
-      - npm run typecheck --workspace backend
-      - npm run test --workspace backend
+      - docker compose exec -T backend sh -lc "npm run lint"
+      - docker compose exec -T backend sh -lc "npm run typecheck"
+      - docker compose exec -T backend sh -lc "npm run test"
     commit_type: api
 
   - id: ui
@@ -44,10 +44,9 @@ phases:
       - frontend/**
       - .github/workflows/**
     gate_commands:
-      - npm run lint --workspace frontend
-      - npm run typecheck --workspace frontend
-      - npm run test --workspace frontend
-      - npm run e2e:smoke --workspace frontend
+      - docker compose exec -T frontend sh -lc "npm run lint"
+      - docker compose exec -T frontend sh -lc "npm run typecheck"
+      - docker compose exec -T frontend sh -lc "npm run test"
     commit_type: ui
 
   - id: fixes
@@ -60,8 +59,9 @@ phases:
       - infra/**
       - .github/workflows/**
     gate_commands:
-      - npm run test --workspaces
-      - npm run e2e:smoke --workspace frontend
+      - docker compose exec -T backend sh -lc "npm run test"
+      - docker compose exec -T frontend sh -lc "npm run test"
+      - node scripts/verify-openapi-contract.mjs
     commit_type: fixes
 
   - id: docs

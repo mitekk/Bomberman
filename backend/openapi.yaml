@@ -1,0 +1,58 @@
+openapi: 3.0.3
+info:
+  title: Bomberman-lite API
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: API is healthy
+  /api/v1/rounds:
+    post:
+      summary: Create a new round
+      requestBody:
+        required: false
+      responses:
+        "201":
+          description: Round created
+  /api/v1/rounds/{roundId}:
+    get:
+      summary: Get round state
+      parameters:
+        - in: path
+          name: roundId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Round state
+        "404":
+          description: Round not found
+  /api/v1/commands:
+    post:
+      summary: Apply one command and advance simulation tick
+      requestBody:
+        required: true
+      responses:
+        "200":
+          description: Updated round state
+        "400":
+          description: Validation error
+        "404":
+          description: Round not found
+  /api/v1/profile:
+    get:
+      summary: Get profile stats
+      responses:
+        "200":
+          description: Profile data
+    patch:
+      summary: Update profile metadata
+      responses:
+        "200":
+          description: Profile updated
