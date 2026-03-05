@@ -8,7 +8,9 @@ shared_allow:
 
 deny:
   - .env
-  - .env.*
+  - .env.local
+  - .env.development
+  - .env.production
   - "**/secrets/**"
   - "**/*.pem"
 

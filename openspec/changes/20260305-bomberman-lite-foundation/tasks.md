@@ -110,6 +110,6 @@
 4. Complete phase 5 accessibility/polish hardening and broaden E2E coverage.
 
 ## Phase Commit Handoff
-- [ ] After each phase completion, invoke `$github-phase-committer`.
-- [ ] Require phase-contained staging and leakage guard pass before commit.
+- [x] After each phase completion, invoke `$github-phase-committer`.
+- [x] Require phase-contained staging and leakage guard pass before commit.
 - [ ] Keep one integration PR (`integration/20260305-bomberman-lite-foundation` -> `master`) and append phase evidence comments.
