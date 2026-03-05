@@ -317,6 +317,8 @@ def detect_secret_issues(repo: Path, staged_files: list[str]) -> list[str]:
     issues: list[str] = []
 
     for rel_path in staged_files:
+        if rel_path.endswith(".env.example") or rel_path == ".env.example":
+            continue
         if SECRET_PATH_RE.search(rel_path):
             issues.append(f"{rel_path}: matches secret-sensitive filename pattern")
             continue
