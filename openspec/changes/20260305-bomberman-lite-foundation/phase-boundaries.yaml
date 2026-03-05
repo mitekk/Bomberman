@@ -1,0 +1,77 @@
+version: 1
+change_id: 20260305-bomberman-lite-foundation
+base_branch: master
+integration_branch: integration/20260305-bomberman-lite-foundation
+
+shared_allow:
+  - openspec/changes/20260305-bomberman-lite-foundation/**
+
+deny:
+  - .env
+  - .env.*
+  - "**/secrets/**"
+  - "**/*.pem"
+
+phases:
+  - id: spec
+    task_heading_match: "^## Phase Spec$"
+    file_allow:
+      - openspec/changes/20260305-bomberman-lite-foundation/**
+      - openspec/specs/**
+    gate_commands:
+      - npx -y @fission-ai/openspec@latest validate --strict --all
+    commit_type: spec
+
+  - id: api
+    task_heading_match: "^## Phase API$"
+    file_allow:
+      - openspec/changes/20260305-bomberman-lite-foundation/**
+      - backend/**
+      - package.json
+      - infra/**
+      - docker-compose.yml
+      - .github/workflows/**
+    gate_commands:
+      - npm run lint --workspace backend
+      - npm run typecheck --workspace backend
+      - npm run test --workspace backend
+    commit_type: api
+
+  - id: ui
+    task_heading_match: "^## Phase UI$"
+    file_allow:
+      - openspec/changes/20260305-bomberman-lite-foundation/**
+      - frontend/**
+      - .github/workflows/**
+    gate_commands:
+      - npm run lint --workspace frontend
+      - npm run typecheck --workspace frontend
+      - npm run test --workspace frontend
+      - npm run e2e:smoke --workspace frontend
+    commit_type: ui
+
+  - id: fixes
+    task_heading_match: "^## Phase Fixes$"
+    file_allow:
+      - openspec/changes/20260305-bomberman-lite-foundation/**
+      - backend/**
+      - frontend/**
+      - scripts/**
+      - infra/**
+      - .github/workflows/**
+    gate_commands:
+      - npm run test --workspaces
+      - npm run e2e:smoke --workspace frontend
+    commit_type: fixes
+
+  - id: docs
+    task_heading_match: "^## Optional Phase Docs$"
+    file_allow:
+      - openspec/changes/20260305-bomberman-lite-foundation/**
+      - openspec/specs/**
+      - README.md
+      - .env.example
+      - docs/**
+    gate_commands:
+      - npx -y @fission-ai/openspec@latest validate --strict --all
+    commit_type: docs
