@@ -56,9 +56,28 @@ export interface CreateRoundInput {
   bots?: number;
 }
 
+export type CommandAction = "move" | "bomb" | "wait";
+
 export interface CommandInput {
   roundId: string;
   actorId: string;
-  action: "move" | "bomb" | "wait";
+  action: CommandAction;
   direction?: Direction;
+}
+
+export type CommandRejectionReason =
+  | "round_ended"
+  | "actor_not_found"
+  | "actor_not_alive"
+  | "direction_required"
+  | "move_blocked"
+  | "bomb_capacity_reached"
+  | "bomb_already_on_tile";
+
+export interface CommandOutcome {
+  actorId: string;
+  action: CommandAction;
+  accepted: boolean;
+  reason?: CommandRejectionReason;
+  tick: number;
 }

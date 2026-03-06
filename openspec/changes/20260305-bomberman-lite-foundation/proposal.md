@@ -131,3 +131,90 @@ Rejected alternatives:
 - Controller-agnostic command model: player and bot actions pass through same simulation command interface.
 - Compatibility policy: additive fields/endpoints only during active development; breaking changes require ADR + migration plan.
 - Observability baseline: structured logs keyed by `round_id`, `tick`, `actor_id`, and outcome reason.
+
+## Sanity Check Addendum (2026-03-05)
+### Intake Delta
+- Scope request: Analyze and plan fixes for three reported runtime issues in current implementation.
+- Reported issues:
+  - Bomb appears to be placed on the opposite side of a breakable wall when an enemy is nearby.
+  - Game intermittently stops responding to input.
+  - Only one bomb can be placed; user expects additional placements from new actor positions.
+- Constraint: Continue in existing OpenSpec flow and produce planning/scaffold artifacts before execution.
+
+### Acceptance Criteria Delta
+| ID | Requirement | Source | Type | Verification | Status |
+| --- | --- | --- | --- | --- | --- |
+| AC-013 | Bomb placement resolves to issuing actor position and is never attributed to nearby enemy state. | User issue #1 | Explicit | Engine unit test + API integration trace | Pending |
+| AC-014 | Input remains responsive during sustained movement/bomb commands without silent lockout. | User issue #2 | Explicit | Backend rate-limit integration + frontend key-hold test | Pending |
+| AC-015 | Player can place multiple active bombs from new positions (capacity-configured), not only one total active bomb. | User issue #3 | Explicit | Engine unit test + Playwright flow | Pending |
+| AC-016 | Command responses provide explicit applied/rejected outcome metadata for debuggability/readability. | Derived from #1/#2 | Implicit | API contract + UI feedback test | Pending |
+
+### Root-Cause Findings (Starter Analysis Update)
+| Issue | Observed behavior | Root cause | Evidence path |
+| --- | --- | --- | --- |
+| #1 Bomb appears on enemy side | Player bomb command can be rejected while bot still acts in same tick, causing visible enemy bomb placement. | `applyCommand` always runs `runBots` after player command branch; no command result feedback. | `backend/src/domain/engine.ts` |
+| #2 Input keys stop working | High-frequency key presses plus polling exceed global server limiter, causing repeated `429` responses. | Single global limiter at `240/min` for all endpoints + frontend polling every `350ms` + unthrottled keydown dispatch. | `backend/src/middleware/rate-limit.ts`, `backend/src/app.ts`, `frontend/src/screens/round-screen.tsx` |
+| #3 Only one bomb allowed | Actor blocked by `bombsPlaced >= bombCapacity` with default capacity `1`. | Capacity defaults to `1` and slot only frees on fuse detonation. | `backend/src/domain/engine.ts` |
+
+### Unknowns and Assumptions Delta
+| Item | Type | Impact (Low/Med/High) | Resolution Path |
+| --- | --- | --- | --- |
+| Exact desired concurrent bomb cap (unbounded vs bounded >1) is not specified. | Resolved | High | Locked to bounded cap of `3` in ADR-005. |
+| Whether rejected player commands should consume simulation tick is not specified. | Resolved | Med | Locked to "advance tick" in ADR-005 to preserve deterministic cadence. |
+| Expected command-per-second target for smooth controls is not specified. | Assumption | Med | Use explicit SLO in tests (for example 8-10 commands/s without lockout). |
+
+### Compatibility Map Delta
+| Endpoint/Surface | Current Behavior | Proposed Change | Break Risk | Mitigation |
+| --- | --- | --- | --- | --- |
+| `POST /api/v1/commands` response | Returns `{ round }` only. | Add optional `commandOutcome` metadata (`accepted`, `reason`, `actorId`, `action`). | Low | Additive field; existing clients keep working. |
+| Rate limiting middleware | One global bucket for all routes. | Route-scoped limits (higher command budget, separate read budget, preserve abuse protection). | Low | Keep defaults backward compatible via env/config with safe floor values. |
+| Engine bomb policy | Default capacity effectively allows one active bomb per actor. | Allow multiple active bombs from new positions up to configured capacity >1; keep same-cell duplicate prevention. | Medium | Keep parity for players/bots and enforce deterministic cap check in shared engine. |
+
+### Architecture Selection Delta
+| Option | Description | Delivery Risk | Ops Risk | Speed | Decision |
+| --- | --- | --- | --- | --- | --- |
+| A | Keep one-bomb policy, add only UI messaging for rejected bombs. | Low | Low | Fast | Rejected |
+| B | Bounded multi-bomb policy + command outcome metadata + route-scoped rate limits + frontend input pacing. | Med | Med | Fast | Selected |
+| C | Unlimited bombs and remove server rate limiting in dev/runtime. | Med | High | Fastest | Rejected |
+
+Selected option: **B**
+
+Rationale:
+- Directly resolves all three user-reported behaviors with minimal contract expansion.
+- Preserves deterministic server-authoritative simulation while improving input reliability.
+- Keeps API evolution additive and phase-compatible.
+
+### API-First Scaffold Delta (Execution Packet)
+- Update engine config to support `maxActiveBombsPerActor` (default >1, applied uniformly to players and bots).
+- Extend command handling to compute and return `commandOutcome` per request.
+- Split rate limiter into route-aware policy (`commands`, `reads`, `health`) with explicit defaults and environment overrides.
+- Record semantic decisions in ADRs:
+  - `docs/adr/ADR-005-command-semantics-and-bomb-capacity.md`
+  - `docs/adr/ADR-006-command-throughput-and-throttling.md`
+- Add backend tests:
+  - Player bomb remains actor-anchored when enemy is adjacent across breakable block.
+  - Player can place sequential bombs from new tiles until configured cap.
+  - Command spam + polling pattern stays below throttle threshold in intended gameplay envelope.
+  - Command rejection includes stable reason codes.
+
+### UI-Second Scaffold Delta (Execution Packet)
+- Replace unbounded keydown mutation firehose with paced command dispatch (queue or in-flight guard + short cadence).
+- Treat `Space` repeat separately to avoid accidental bomb spam on key hold.
+- Use mutation response to `setQueryData` immediately; reduce polling pressure.
+- Surface retry/rejection feedback for `429` and command rejections.
+- Add frontend coverage:
+  - Key-hold responsiveness test (no silent lock state).
+  - Multi-bomb placement flow from successive player positions.
+  - UI feedback for rejected command reason.
+
+### Verification Gate Delta
+- Backend unit: `engine.test.ts` expanded with issue #1/#3 deterministic regressions.
+- Backend integration: command-route limiter and outcome metadata behavior.
+- Frontend unit: command dispatcher pacing and retry/error handling.
+- Playwright smoke+: start round -> place bomb -> move -> place second bomb -> controls remain responsive.
+
+### Residual Risks and Mitigations
+- Risk: Raising command throughput can increase CPU usage under abuse.
+  - Mitigation: route-scoped limiter with bounded burst and per-IP buckets.
+- Risk: Multi-bomb default may shift difficulty balance.
+  - Mitigation: tune via config and add bot/player parity tests.

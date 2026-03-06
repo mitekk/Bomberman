@@ -38,6 +38,32 @@ export interface RoundState {
   timerTicksRemaining: number;
 }
 
+export type Direction = "up" | "down" | "left" | "right";
+
+export type CommandAction = "move" | "bomb" | "wait";
+
+export interface CommandInput {
+  roundId: string;
+  actorId: string;
+  action: CommandAction;
+  direction?: Direction;
+}
+
+export interface CommandOutcome {
+  actorId: string;
+  action: CommandAction;
+  accepted: boolean;
+  reason?:
+    | "round_ended"
+    | "actor_not_found"
+    | "actor_not_alive"
+    | "direction_required"
+    | "move_blocked"
+    | "bomb_capacity_reached"
+    | "bomb_already_on_tile";
+  tick: number;
+}
+
 export interface Profile {
   displayName: string;
   avatar: string;

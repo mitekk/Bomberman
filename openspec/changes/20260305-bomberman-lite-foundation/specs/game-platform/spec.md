@@ -61,3 +61,30 @@ The UI SHALL render round-critical readability elements: bomb state/fuse timing,
 - **Given** the player is eliminated
 - **When** the round ends
 - **Then** the UI shows blast context and final outcome so the cause of failure is understandable.
+
+### Requirement: Actor-Anchored Bomb Placement
+Bomb placement SHALL resolve only to the issuing actor's current tile at command execution time.
+
+#### Scenario: Nearby enemy does not remap player bomb placement
+- **Given** a player and an enemy are separated by a breakable block
+- **When** the player issues a bomb command
+- **Then** the created bomb owner is the player
+- **And** the bomb coordinates match the player's tile at command execution time.
+
+### Requirement: Multi-Position Bomb Placement Capacity
+Actors SHALL be able to place bombs from new positions while previous bombs are still active, subject to a deterministic configured active-bomb capacity greater than or equal to 2.
+
+#### Scenario: Player can place a second bomb after moving
+- **Given** a player has already placed one active bomb and still has remaining configured capacity
+- **When** the player moves to a different tile and issues another bomb command
+- **Then** a second active bomb is accepted on the new tile
+- **And** both bombs persist independently until fuse resolution.
+
+### Requirement: Input Reliability Under Sustained Controls
+The command pipeline SHALL remain responsive under expected gameplay input cadence and SHALL not fail silently when throttling occurs.
+
+#### Scenario: Command throttling is explicit and recoverable
+- **Given** command rate exceeds the configured server budget
+- **When** an additional command is submitted
+- **Then** the API returns an explicit throttling response with actionable retry metadata
+- **And** the client can resume control once the retry window expires.

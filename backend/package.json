@@ -9,7 +9,7 @@
     "start": "node dist/index.js",
     "lint": "echo 'lint not configured yet'",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test --import tsx ./src/domain/engine.test.ts ./tests/integration/health.test.ts"
+    "test": "node --test --import tsx ./src/domain/engine.test.ts ./tests/integration/health.test.ts ./tests/integration/commands.test.ts"
   },
   "dependencies": {
     "cors": "^2.8.5",

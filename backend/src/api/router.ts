@@ -38,7 +38,7 @@ apiRouter.post("/api/v1/commands", (req, res) => {
   const command = parseCommand(req.body);
   const round = safeRound(command.roundId);
 
-  applyCommand(round, command);
+  const { commandOutcome } = applyCommand(round, command);
 
   if (round.status === "ended" && round.result) {
     const player = round.actors.find((actor) => actor.type === "player");
@@ -46,7 +46,7 @@ apiRouter.post("/api/v1/commands", (req, res) => {
     profiles.updateResult(round.result, player?.bombsPlaced ?? 0, eliminations);
   }
 
-  res.json({ round });
+  res.json({ round, commandOutcome });
 });
 
 apiRouter.get("/api/v1/profile", (_req, res) => {

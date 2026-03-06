@@ -1,6 +1,29 @@
-import type { Profile, RoundState } from "../types/game";
+import type { CommandInput, CommandOutcome, Profile, RoundState } from "../types/game";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
+
+interface ApiErrorEnvelope {
+  error?: {
+    code?: string;
+    message?: string;
+    details?: {
+      retryAfterMs?: number;
+    };
+  };
+}
+
+export class ApiRequestError extends Error {
+  status: number;
+  code?: string;
+  retryAfterMs?: number;
+
+  constructor(status: number, message: string, code?: string, retryAfterMs?: number) {
+    super(message);
+    this.status = status;
+    this.code = code;
+    this.retryAfterMs = retryAfterMs;
+  }
+}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -12,8 +35,19 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    const body = await response.text();
-    throw new Error(body || `Request failed: ${response.status}`);
+    const rawBody = await response.text();
+    let parsed: ApiErrorEnvelope | undefined;
+    try {
+      parsed = rawBody ? (JSON.parse(rawBody) as ApiErrorEnvelope) : undefined;
+    } catch {
+      parsed = undefined;
+    }
+    throw new ApiRequestError(
+      response.status,
+      parsed?.error?.message ?? (rawBody || `Request failed: ${response.status}`),
+      parsed?.error?.code,
+      parsed?.error?.details?.retryAfterMs,
+    );
   }
 
   return (await response.json()) as T;
@@ -31,12 +65,12 @@ export async function getRound(roundId: string) {
 }
 
 export async function sendCommand(payload: {
-  roundId: string;
-  actorId: string;
-  action: "move" | "bomb" | "wait";
-  direction?: "up" | "down" | "left" | "right";
+  roundId: CommandInput["roundId"];
+  actorId: CommandInput["actorId"];
+  action: CommandInput["action"];
+  direction?: CommandInput["direction"];
 }) {
-  return request<{ round: RoundState }>("/api/v1/commands", {
+  return request<{ round: RoundState; commandOutcome: CommandOutcome }>("/api/v1/commands", {
     method: "POST",
     body: JSON.stringify(payload),
   });

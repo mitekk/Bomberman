@@ -3,6 +3,7 @@ import type {
   Actor,
   Bomb,
   CommandInput,
+  CommandOutcome,
   CreateRoundInput,
   Direction,
   Explosion,
@@ -16,6 +17,7 @@ const WIDTH = 13;
 const HEIGHT = 11;
 const DEFAULT_FUSE_TICKS = 6;
 const DEFAULT_TIMER_TICKS = 180 * 4;
+const DEFAULT_ACTIVE_BOMB_CAPACITY = 3;
 
 const DIRS: Record<Direction, Position> = {
   up: { x: 0, y: -1 },
@@ -77,7 +79,7 @@ export function createRound(input: CreateRoundInput = {}): RoundState {
       x: 1,
       y: 1,
       alive: true,
-      bombCapacity: 1,
+      bombCapacity: DEFAULT_ACTIVE_BOMB_CAPACITY,
       bombRange: 2,
       bombsPlaced: 0,
       speed: 1,
@@ -99,7 +101,7 @@ export function createRound(input: CreateRoundInput = {}): RoundState {
       x: spawn.x,
       y: spawn.y,
       alive: true,
-      bombCapacity: 1,
+      bombCapacity: DEFAULT_ACTIVE_BOMB_CAPACITY,
       bombRange: 2,
       bombsPlaced: 0,
       speed: 1,
@@ -142,15 +144,17 @@ function findActor(state: RoundState, actorId: string): Actor | undefined {
   return state.actors.find((actor) => actor.id === actorId);
 }
 
-function placeBomb(state: RoundState, actor: Actor): void {
+type PlaceBombResult = "placed" | "actor_not_alive" | "bomb_capacity_reached" | "bomb_already_on_tile";
+
+function placeBomb(state: RoundState, actor: Actor): PlaceBombResult {
   if (!actor.alive) {
-    return;
+    return "actor_not_alive";
   }
   if (actor.bombsPlaced >= actor.bombCapacity) {
-    return;
+    return "bomb_capacity_reached";
   }
   if (state.bombs.some((bomb) => bomb.x === actor.x && bomb.y === actor.y)) {
-    return;
+    return "bomb_already_on_tile";
   }
 
   state.bombs.push({
@@ -162,11 +166,12 @@ function placeBomb(state: RoundState, actor: Actor): void {
     fuseTicks: DEFAULT_FUSE_TICKS,
   });
   actor.bombsPlaced += 1;
+  return "placed";
 }
 
-function moveActor(state: RoundState, actor: Actor, direction: Direction): void {
+function moveActor(state: RoundState, actor: Actor, direction: Direction): boolean {
   if (!actor.alive) {
-    return;
+    return false;
   }
   const delta = DIRS[direction];
   const nextX = actor.x + delta.x;
@@ -174,7 +179,9 @@ function moveActor(state: RoundState, actor: Actor, direction: Direction): void 
   if (isWalkable(state, nextX, nextY)) {
     actor.x = nextX;
     actor.y = nextY;
+    return true;
   }
+  return false;
 }
 
 function explosionCells(state: RoundState, bomb: Bomb): Position[] {
@@ -296,21 +303,91 @@ function evaluateResult(state: RoundState): RoundResult | undefined {
   return undefined;
 }
 
-export function applyCommand(state: RoundState, command: CommandInput): RoundState {
+function resolveActorCommand(state: RoundState, actor: Actor, command: CommandInput): CommandOutcome {
+  if (command.action === "move") {
+    if (!command.direction) {
+      return {
+        actorId: actor.id,
+        action: command.action,
+        accepted: false,
+        reason: "direction_required",
+        tick: state.tick,
+      };
+    }
+
+    const moved = moveActor(state, actor, command.direction);
+    return {
+      actorId: actor.id,
+      action: command.action,
+      accepted: moved,
+      reason: moved ? undefined : "move_blocked",
+      tick: state.tick,
+    };
+  }
+
+  if (command.action === "bomb") {
+    const bombResult = placeBomb(state, actor);
+    return {
+      actorId: actor.id,
+      action: command.action,
+      accepted: bombResult === "placed",
+      reason: bombResult === "placed" ? undefined : bombResult,
+      tick: state.tick,
+    };
+  }
+
+  return {
+    actorId: actor.id,
+    action: command.action,
+    accepted: true,
+    tick: state.tick,
+  };
+}
+
+export function applyCommand(
+  state: RoundState,
+  command: CommandInput,
+): { state: RoundState; commandOutcome: CommandOutcome } {
   if (state.status === "ended") {
-    return state;
+    return {
+      state,
+      commandOutcome: {
+        actorId: command.actorId,
+        action: command.action,
+        accepted: false,
+        reason: "round_ended",
+        tick: state.tick,
+      },
+    };
   }
 
   const actor = findActor(state, command.actorId);
-  if (!actor || !actor.alive) {
-    return state;
+  if (!actor) {
+    return {
+      state,
+      commandOutcome: {
+        actorId: command.actorId,
+        action: command.action,
+        accepted: false,
+        reason: "actor_not_found",
+        tick: state.tick,
+      },
+    };
+  }
+  if (!actor.alive) {
+    return {
+      state,
+      commandOutcome: {
+        actorId: actor.id,
+        action: command.action,
+        accepted: false,
+        reason: "actor_not_alive",
+        tick: state.tick,
+      },
+    };
   }
 
-  if (command.action === "move" && command.direction) {
-    moveActor(state, actor, command.direction);
-  } else if (command.action === "bomb") {
-    placeBomb(state, actor);
-  }
+  const commandOutcome = resolveActorCommand(state, actor, command);
 
   runBots(state);
 
@@ -345,5 +422,11 @@ export function applyCommand(state: RoundState, command: CommandInput): RoundSta
     state.result = result;
   }
 
-  return state;
+  return {
+    state,
+    commandOutcome: {
+      ...commandOutcome,
+      tick: state.tick,
+    },
+  };
 }
