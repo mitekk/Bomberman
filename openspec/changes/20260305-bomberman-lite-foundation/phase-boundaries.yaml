@@ -73,6 +73,7 @@ phases:
       - openspec/specs/**
       - README.md
       - .env.example
+      - .gitignore
       - docs/**
     gate_commands:
       - npx -y @fission-ai/openspec@latest validate --strict --all
